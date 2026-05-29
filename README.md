@@ -1,6 +1,6 @@
 # Kanban Board
 
-A responsive Kanban board for managing IT tasks. The project is built with React, Vite, Material UI, React Router, and React Context for global state management.
+A responsive Kanban board for managing tasks. The project is built with React, Vite, Material UI, React Router, and React Context for global state management.
 
 ## Tech Stack
 
