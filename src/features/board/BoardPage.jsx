@@ -62,14 +62,12 @@ function BoardPage() {
                 key={column.id}
                 size={{
                   xs: 12,
-                  md: isAllTasksSelected ? 4 : 8,
-                }}
-                sx={{
-                  mx: { md: isAllTasksSelected ? 0 : 'auto' },
+                  md: isAllTasksSelected ? 4 : 12,
                 }}
               >
                 <KanbanColumn
                   column={column}
+                  isWideLayout={!isAllTasksSelected}
                   onMoveTask={moveTask}
                   statuses={taskStatuses}
                   tasks={tasks.filter((task) => task.status === column.id)}

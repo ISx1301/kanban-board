@@ -2,7 +2,14 @@ import { Box, Paper, Stack, Typography } from '@mui/material'
 import { useI18n } from '../../context/I18nContext'
 import TaskCard from '../molecules/TaskCard'
 
-function KanbanColumn({ column, tasks, users, statuses, onMoveTask }) {
+function KanbanColumn({
+  column,
+  isWideLayout = false,
+  tasks,
+  users,
+  statuses,
+  onMoveTask,
+}) {
   const { t } = useI18n()
   const columnLabel = t.statuses[column.id]
 
@@ -63,16 +70,31 @@ function KanbanColumn({ column, tasks, users, statuses, onMoveTask }) {
           </Box>
         </Box>
 
-        <Stack spacing={1.5}>
+        <Box
+          sx={{
+            alignItems: 'flex-start',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: isWideLayout ? 'row' : 'column' },
+            flexWrap: 'wrap',
+            gap: 1.5,
+          }}
+        >
           {tasks.length ? (
             tasks.map((task) => (
-              <TaskCard
+              <Box
                 key={task.id}
-                onMove={onMoveTask}
-                statuses={statuses}
-                task={task}
-                users={users}
-              />
+                sx={{
+                  maxWidth: { md: '28rem' },
+                  width: '100%',
+                }}
+              >
+                <TaskCard
+                  onMove={onMoveTask}
+                  statuses={statuses}
+                  task={task}
+                  users={users}
+                />
+              </Box>
             ))
           ) : (
             <Box
@@ -93,7 +115,7 @@ function KanbanColumn({ column, tasks, users, statuses, onMoveTask }) {
               </Typography>
             </Box>
           )}
-        </Stack>
+        </Box>
       </Stack>
     </Paper>
   )

@@ -107,8 +107,8 @@ function TaskCard({ task, users, statuses, onMove }) {
           borderRadius: '1rem',
           cursor: 'pointer',
           display: 'flex',
-          minHeight: { xs: '20.625rem', md: '22.5rem' },
-          height: { md: '22.5rem' },
+          minHeight: { xs: '19.5rem', md: '20.75rem' },
+          height: { md: '20.75rem' },
           overflow: 'hidden',
           position: 'relative',
           transition:
@@ -132,11 +132,11 @@ function TaskCard({ task, users, statuses, onMove }) {
           display: 'flex',
           flex: 1,
           minWidth: 0,
-          p: 2.25,
+          p: { xs: 2, md: 2 },
         }}
       >
         <Stack spacing={1.75} sx={{ flex: 1, minHeight: 0, width: '100%' }}>
-          <Box sx={{ minHeight: '8.25rem', pr: 4 }}>
+          <Box sx={{ minHeight: '7.5rem', pr: 4 }}>
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 component="h3"
@@ -174,7 +174,7 @@ function TaskCard({ task, users, statuses, onMove }) {
               columnGap: 1,
               display: 'flex',
               flexWrap: 'wrap',
-              maxHeight: '3.625rem',
+              maxHeight: '3.25rem',
               minHeight: '1.625rem',
               overflow: 'hidden',
               rowGap: 1,
@@ -223,7 +223,7 @@ function TaskCard({ task, users, statuses, onMove }) {
             </TaskMetaChip>
           </Stack>
 
-          <Box sx={{ minHeight: '2.8125rem' }}>
+          <Box sx={{ minHeight: '2.625rem' }}>
             <Stack
               direction="row"
               justifyContent="space-between"
