@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { uk } from 'date-fns/locale'
+import { enUS, uk } from 'date-fns/locale'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -26,32 +26,33 @@ import {
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import SendIcon from '@mui/icons-material/Send'
-import AssigneeAvatar from '../../components/AssigneeAvatar'
-import PriorityChip from '../../components/PriorityChip'
+import AssigneeAvatar from '../../components/atoms/AssigneeAvatar'
+import PriorityChip from '../../components/atoms/PriorityChip'
 import { taskPriorities, taskStatuses } from '../../constants/kanban'
+import { useI18n } from '../../context/I18nContext'
 import { useTasks } from '../../context/TaskContext'
 
 function TaskDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { language, t } = useI18n()
   const { tasks, users, updateTask, toggleSubtask, addComment } = useTasks()
   const task = tasks.find((item) => item.id === id)
   const [commentText, setCommentText] = useState('')
   const [showSavedMessage, setShowSavedMessage] = useState(false)
+  const dateLocale = language === 'uk' ? uk : enUS
 
   if (!task) {
     return (
       <Container component="main" maxWidth="md" sx={{ py: 4 }}>
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper elevation={0} sx={{ p: 4, borderRadius: 4 }}>
           <Stack spacing={2}>
             <Typography component="h1" variant="h5">
-              Задачу не знайдено
+              {t.task.notFoundTitle}
             </Typography>
-            <Typography color="text.secondary">
-              Перевірте посилання або поверніться до дошки.
-            </Typography>
+            <Typography color="text.secondary">{t.task.notFoundText}</Typography>
             <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>
-              До дошки
+              {t.task.backToBoard}
             </Button>
           </Stack>
         </Paper>
@@ -60,12 +61,11 @@ function TaskDetailsPage() {
   }
 
   const assignee = users.find((user) => user.id === task.assigneeId)
-  const currentStatus = taskStatuses.find((status) => status.id === task.status)
   const completedSubtasks = task.subtasks.filter(
     (subtask) => subtask.isCompleted,
   ).length
   const deadline = format(new Date(task.deadline), 'd MMMM yyyy', {
-    locale: uk,
+    locale: dateLocale,
   })
 
   function updateField(field, value) {
@@ -88,50 +88,83 @@ function TaskDetailsPage() {
   }
 
   return (
-    <Container component="main" maxWidth="lg" sx={{ py: 4 }}>
+    <Container
+      component="main"
+      maxWidth="md"
+      sx={{
+        mx: 'auto',
+        py: { xs: 3, md: 4 },
+      }}
+    >
       <Stack spacing={3}>
-        <Stack direction="row" justifyContent="space-between" spacing={2}>
+        <Stack
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          spacing={2}
+        >
           <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>
-            Назад
+            {t.task.back}
           </Button>
-          <Typography color="text.secondary" variant="body2">
-            Дедлайн: {deadline}
-          </Typography>
+          <Chip color="primary" label={`${t.task.deadline}: ${deadline}`} />
         </Stack>
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2.5, md: 4 },
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 4,
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography component="h1" fontWeight={900} variant="h4">
+              {task.title}
+            </Typography>
+            <Typography color="text.secondary">{t.task.detailsHint}</Typography>
+          </Stack>
+        </Paper>
 
         <Box
           sx={{
             display: 'grid',
             gap: 3,
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 320px' },
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 17.5rem' },
             alignItems: 'start',
           }}
         >
           <Stack spacing={3}>
-            <Paper variant="outlined" sx={{ p: 3 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 2.5, md: 3 },
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 4,
+              }}
+            >
               <Stack spacing={2}>
                 <Box>
-                  <Typography component="h1" fontWeight={700} variant="h4">
-                    Деталі задачі
+                  <Typography component="h2" fontWeight={800} variant="h5">
+                    {t.task.mainInfo}
                   </Typography>
-                  <Typography color="text.secondary">
-                    ID: {task.id}
-                  </Typography>
+                  <Typography color="text.secondary">ID: {task.id}</Typography>
                 </Box>
 
                 {showSavedMessage ? (
-                  <Alert severity="success">Зміни збережено.</Alert>
+                  <Alert severity="success">{t.task.saved}</Alert>
                 ) : null}
 
                 <TextField
                   fullWidth
-                  label="Назва"
+                  label={t.task.title}
                   value={task.title}
                   onChange={(event) => updateField('title', event.target.value)}
                 />
                 <TextField
                   fullWidth
-                  label="Опис"
+                  label={t.task.description}
                   minRows={4}
                   multiline
                   value={task.description}
@@ -148,9 +181,9 @@ function TaskDetailsPage() {
                   }}
                 >
                   <FormControl fullWidth>
-                    <InputLabel id="status-label">Статус</InputLabel>
+                    <InputLabel id="status-label">{t.task.status}</InputLabel>
                     <Select
-                      label="Статус"
+                      label={t.task.status}
                       labelId="status-label"
                       value={task.status}
                       onChange={(event) =>
@@ -159,16 +192,16 @@ function TaskDetailsPage() {
                     >
                       {taskStatuses.map((status) => (
                         <MenuItem key={status.id} value={status.id}>
-                          {status.title}
+                          {t.statuses[status.id].title}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
 
                   <FormControl fullWidth>
-                    <InputLabel id="priority-label">Пріоритет</InputLabel>
+                    <InputLabel id="priority-label">{t.task.priority}</InputLabel>
                     <Select
-                      label="Пріоритет"
+                      label={t.task.priority}
                       labelId="priority-label"
                       value={task.priority}
                       onChange={(event) =>
@@ -177,16 +210,16 @@ function TaskDetailsPage() {
                     >
                       {taskPriorities.map((priority) => (
                         <MenuItem key={priority.id} value={priority.id}>
-                          {priority.label}
+                          {t.priorities[priority.id]}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
 
                   <FormControl fullWidth>
-                    <InputLabel id="assignee-label">Відповідальний</InputLabel>
+                    <InputLabel id="assignee-label">{t.task.assignee}</InputLabel>
                     <Select
-                      label="Відповідальний"
+                      label={t.task.assignee}
                       labelId="assignee-label"
                       value={task.assigneeId}
                       onChange={(event) =>
@@ -207,15 +240,23 @@ function TaskDetailsPage() {
                   variant="contained"
                   onClick={() => setShowSavedMessage(true)}
                 >
-                  Зберегти
+                  {t.task.save}
                 </Button>
               </Stack>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 3 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 2.5, md: 3 },
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 4,
+              }}
+            >
               <Stack spacing={2}>
                 <Typography component="h2" fontWeight={700} variant="h5">
-                  Коментарі
+                  {t.task.comments}
                 </Typography>
 
                 <List disablePadding>
@@ -241,7 +282,7 @@ function TaskDetailsPage() {
                                 {format(
                                   new Date(comment.createdAt),
                                   'd MMM yyyy, HH:mm',
-                                  { locale: uk },
+                                  { locale: dateLocale },
                                 )}
                               </Typography>
                             </>
@@ -257,7 +298,7 @@ function TaskDetailsPage() {
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <TextField
                       fullWidth
-                      label="Новий коментар"
+                      label={t.task.newComment}
                       value={commentText}
                       onChange={(event) => setCommentText(event.target.value)}
                     />
@@ -266,7 +307,7 @@ function TaskDetailsPage() {
                       type="submit"
                       variant="outlined"
                     >
-                      Додати
+                      {t.task.add}
                     </Button>
                   </Stack>
                 </Box>
@@ -275,26 +316,42 @@ function TaskDetailsPage() {
           </Stack>
 
           <Stack spacing={3}>
-            <Paper variant="outlined" sx={{ p: 3 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 4,
+              }}
+            >
               <Stack spacing={1.5}>
                 <Typography component="h2" fontWeight={700} variant="h6">
-                  Інформація
+                  {t.task.info}
                 </Typography>
                 <AssigneeAvatar user={assignee} />
                 <Typography color="text.secondary" variant="body2">
-                  Статус: {currentStatus?.description}
+                  {t.task.status}: {t.statuses[task.status].description}
                 </Typography>
                 <PriorityChip priority={task.priority} />
                 <Typography color="text.secondary" variant="body2">
-                  Підзадачі: {completedSubtasks}/{task.subtasks.length}
+                  {t.task.subtasks}: {completedSubtasks}/{task.subtasks.length}
                 </Typography>
               </Stack>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 3 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 4,
+              }}
+            >
               <Stack spacing={1.5}>
                 <Typography component="h2" fontWeight={700} variant="h6">
-                  Підзадачі
+                  {t.task.subtasks}
                 </Typography>
                 {task.subtasks.map((subtask) => (
                   <Stack
@@ -323,11 +380,24 @@ function TaskDetailsPage() {
               </Stack>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 3 }}>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
-                {task.tags.map((tag) => (
-                  <Chip key={tag} label={tag} />
-                ))}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 4,
+              }}
+            >
+              <Stack spacing={1.5}>
+                <Typography component="h2" fontWeight={700} variant="h6">
+                  {t.task.tags}
+                </Typography>
+                <Stack alignItems="flex-start" spacing={1}>
+                  {task.tags.map((tag) => (
+                    <Chip key={tag} label={tag} />
+                  ))}
+                </Stack>
               </Stack>
             </Paper>
           </Stack>
