@@ -1,139 +1,86 @@
 import { useState } from 'react'
-import {
-  Box,
-  Chip,
-  Container,
-  Paper,
-  Stack,
-  Tab,
-  Tabs,
-  useMediaQuery,
-} from '@mui/material'
+import { Box, Container, Grid, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import KanbanColumn from '../../components/KanbanColumn'
-import { taskStatuses } from '../../constants/kanban'
+import BoardStatusTabs from '../../components/molecules/BoardStatusTabs'
+import KanbanColumn from '../../components/organisms/KanbanColumn'
+import { allTasksFilter, taskStatuses } from '../../constants/kanban'
 import { useTasks } from '../../context/TaskContext'
-
-const allTasksFilter = {
-  id: 'all',
-  title: 'Усі задачі',
-  shortTitle: 'Усі',
-  description: 'Повна дошка',
-}
 
 function BoardPage() {
   const [selectedStatus, setSelectedStatus] = useState(allTasksFilter.id)
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
   const { tasks, users, moveTask } = useTasks()
+  const isAllTasksSelected = selectedStatus === allTasksFilter.id
   const visibleStatuses =
-    selectedStatus === allTasksFilter.id
+    isAllTasksSelected
       ? taskStatuses
       : taskStatuses.filter((status) => status.id === selectedStatus)
 
-  // "All" displays the full board; status tabs narrow the board to one column.
-  function getTaskCount(statusId) {
-    if (statusId === allTasksFilter.id) {
-      return tasks.length
-    }
-
-    return tasks.filter((task) => task.status === statusId).length
-  }
-
-  function renderTabLabel(status) {
-    return (
-      <Stack
-        alignItems="center"
-        direction={isDesktop ? 'row' : 'column'}
-        justifyContent={isDesktop ? 'space-between' : 'center'}
-        spacing={1}
-        sx={{ width: isDesktop ? '100%' : 'auto' }}
-      >
-        <span>
-          {isDesktop ? status.title : (status.shortTitle ?? status.title)}
-        </span>
-        <Chip label={getTaskCount(status.id)} size="small" />
-      </Stack>
-    )
-  }
-
   return (
-    <Container component="main" maxWidth="xl" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', md: '260px minmax(0, 1fr)' },
-          alignItems: 'start',
-        }}
-      >
-        <Paper
-          component="aside"
-          variant="outlined"
-          sx={{ p: { xs: 1, md: 2 }, position: { md: 'sticky' }, top: { md: 24 } }}
+    <Box
+      component="main"
+      sx={{
+        bgcolor: 'background.default',
+        height: { md: 'calc(100vh - 4rem)' },
+        minHeight: { xs: '100vh', md: 'auto' },
+        overflow: { md: 'hidden' },
+        py: { xs: 3, md: 0 },
+      }}
+    >
+      <Container maxWidth="xl" sx={{ height: { md: '100%' } }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: { xs: 2, md: 3 },
+            gridTemplateColumns: { xs: '1fr', md: '16.25rem minmax(0, 1fr)' },
+            alignItems: { xs: 'start', md: 'stretch' },
+            boxSizing: 'border-box',
+            height: { md: '100%' },
+            py: { md: 1 },
+          }}
         >
-          <Tabs
-            aria-label="Фільтр задач за статусом"
-            orientation={isDesktop ? 'vertical' : 'horizontal'}
-            scrollButtons={false}
-            value={selectedStatus}
-            variant={isDesktop ? 'scrollable' : 'fullWidth'}
-            onChange={(_, value) => setSelectedStatus(value)}
-            sx={{
-              minHeight: 0,
-              // Mobile uses full-width tabs to avoid horizontal scrolling.
-              '& .MuiTab-root': {
-                alignItems: 'stretch',
-                flex: isDesktop ? 'initial' : '1 1 0',
-                minHeight: isDesktop ? 44 : 58,
-                minWidth: 0,
-                px: { xs: 0.5, md: 2 },
-                textTransform: 'none',
-              },
-              '& .MuiTabs-flexContainer': {
-                gap: { xs: 0, md: 0.5 },
-              },
-            }}
-          >
-            {[allTasksFilter, ...taskStatuses].map((status) => (
-              <Tab
-                key={status.id}
-                label={renderTabLabel(status)}
-                value={status.id}
-              />
-            ))}
-          </Tabs>
-        </Paper>
+          <BoardStatusTabs
+            isDesktop={isDesktop}
+            selectedStatus={selectedStatus}
+            tasks={tasks}
+            onChange={setSelectedStatus}
+          />
 
-        <Stack spacing={3}>
-          <Box
+          <Grid
+            className="tasks-scroll-area"
+            container
+            spacing={{ xs: 2, md: 2.5 }}
             sx={{
-              display: 'grid',
-              gap: 2,
-              gridTemplateColumns: {
-                xs: '1fr',
-                lg:
-                  selectedStatus === allTasksFilter.id
-                    ? 'repeat(3, minmax(0, 1fr))'
-                    : 'minmax(0, 760px)',
-              },
-              alignItems: 'start',
+              alignContent: 'flex-start',
+              height: { md: '100%' },
+              overflowY: { md: 'auto' },
             }}
           >
             {visibleStatuses.map((column) => (
-              <KanbanColumn
-                column={column}
+              <Grid
                 key={column.id}
-                onMoveTask={moveTask}
-                statuses={taskStatuses}
-                tasks={tasks.filter((task) => task.status === column.id)}
-                users={users}
-              />
+                size={{
+                  xs: 12,
+                  md: isAllTasksSelected ? 4 : 8,
+                }}
+                sx={{
+                  mx: { md: isAllTasksSelected ? 0 : 'auto' },
+                }}
+              >
+                <KanbanColumn
+                  column={column}
+                  onMoveTask={moveTask}
+                  statuses={taskStatuses}
+                  tasks={tasks.filter((task) => task.status === column.id)}
+                  users={users}
+                />
+              </Grid>
             ))}
-          </Box>
-        </Stack>
-      </Box>
-    </Container>
+          </Grid>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 
